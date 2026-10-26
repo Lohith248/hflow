@@ -13,7 +13,8 @@ per scattered seek. HFlow deliberately ships no training dataloader (see
 for wiring the pattern into your own.
 
 **Prerequisites:** `pyarrow` (the `arrow` extra: `uv sync --extra arrow`), and
-a manifest produced by `hflow curate` / `hflow.curate()`.
+a manifest produced by `hflow curate` / `hflow.curate()`. Set `LOCAL_DIR`
+to a writable location on each node.
 
 ## The three steps that only work as a set
 
@@ -48,6 +49,7 @@ def prepare_on_one_rank() -> Path:
     arrow_path = LOCAL_DIR / "training.arrow"
     if arrow_path.exists():  # converted files are immutable; reuse across jobs
         return arrow_path
+    LOCAL_DIR.mkdir(parents=True, exist_ok=True)
     parquet_path = hflow.fetch_uri(MANIFEST_URL)  # etag-cached local copy
     table = pq.read_table(parquet_path)
     # Uncompressed on purpose: compressed IPC cannot be mapped zero-copy.
